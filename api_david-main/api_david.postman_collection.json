@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "4dcec305-a1dc-4cf4-a954-ac593d859eeb",
+		"_postman_id": "dd0d36f9-0dbe-4bea-b545-8549afdae97e",
 		"name": "api_david",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "24634788"
@@ -36,14 +36,16 @@
 									"};\r",
 									"\r",
 									"if(response) {\r",
-									"    pm.globals.set(\"companyId\", response.id);\r",
+									"    pm.environment.set(\"companyId\", response.id);\r",
+									"    pm.environment.set(\"postCompanyName\", response.name);\r",
+									"    pm.environment.set(\"postCompanyAddress\", JSON.stringify(response.address));\r",
 									"}\r",
 									"\r",
-									"pm.test(\"Status code is 201\", function () {\r",
+									"pm.test(\"Status code is 201\", () => {\r",
 									"    pm.response.to.have.status(201);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Content-Type is present\", function () {\r",
+									"pm.test(\"Content-Type is present\", () => {\r",
 									"    pm.response.to.have.header(\"Content-Type\");\r",
 									"});\r",
 									"\r",
@@ -51,8 +53,8 @@
 									"    pm.response.to.have.jsonSchema(schema);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 1000ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -81,59 +83,66 @@
 							]
 						}
 					},
-					"response": []
-				},
-				{
-					"name": "getCompanies",
-					"event": [
+					"response": [
 						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const response = pm.response.json();\r",
-									"\r",
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Headers OK\", function () {\r",
-									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"    pm.response.to.have.header(\"Transfer-Encoding\");\r",
-									"    pm.response.to.have.header(\"Date\");\r",
-									"    pm.response.to.have.header(\"Keep-Alive\");\r",
-									"    pm.response.to.have.header(\"Connection\");\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
+							"name": "201 Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"David SRL\",\r\n    \"address\": {\r\n        \"country\": \"Romania\",\r\n        \"city\": \"Braila\",\r\n        \"street\": \"Galati\",\r\n        \"postcode\": \"123456\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/company",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"company"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
 						},
-						"url": {
-							"raw": "{{host}}/company",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"company"
-							]
+						{
+							"name": "400 Bad Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"David SRL\",\r\n    \"address\": {\r\n        \"country\": \"Romania\",\r\n        \"city\": 1,\r\n        \"street\": \"*()\",\r\n        \"postcode\": 1\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/company",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"company"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
 						}
-					},
-					"response": []
+					]
 				},
 				{
 					"name": "getCompany",
@@ -151,21 +160,33 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"if(response) {\r",
+									"    pm.test(\"Name Correct\", () =>  {\r",
+									"        pm.expect(response.name).to.eql(pm.environment.get('postCompanyName'));\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Body Correct\", () => {\r",
+									"        pm.expect(JSON.stringify(response.address)).to.eql(pm.environment.get('postCompanyAddress'));\r",
+									"    });    \r",
+									"}\r",
+									"\r",
+									"// console.log(pm.environment.get('postCompanyName'));\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
 									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Headers OK\", function () {\r",
+									"pm.test(\"Headers OK\", () => {\r",
 									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"    pm.response.to.have.header(\"Transfer-Encoding\");\r",
-									"    pm.response.to.have.header(\"Date\");\r",
-									"    pm.response.to.have.header(\"Keep-Alive\");\r",
-									"    pm.response.to.have.header(\"Connection\");\r",
-									"});"
+									"});\r",
+									"\r",
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -200,21 +221,46 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"var schema = {\r",
+									"    \"items\": {\r",
+									"        \"type\": \"object\",\r",
+									"        \"properties\": {\r",
+									"            \"id\": {\"type\": \"number\"},\r",
+									"            \"name\": {\"type\": \"string\"},\r",
+									"            \"address\": {\r",
+									"                \"street\": {\"type\": \"string\"},\r",
+									"                \"postcode\": {\"type\": \"string\"},\r",
+									"                \"city\": {\"type\": \"string\"},\r",
+									"                \"country\": {\"type\": \"string\"},\r",
+									"            }\r",
+									"        },\r",
+									"        \"required\": [\"id\", \"name\", \"street\", \"postcode\", \"city\", \"country\"]\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"if(response) {\r",
+									"    pm.environment.set(\"postCompanyName\", response.name);\r",
+									"    pm.environment.set(\"postCompanyAddress\", JSON.stringify(response.address));\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
 									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Headers OK\", function () {\r",
+									"pm.test(\"Headers OK\", () => {\r",
 									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"    pm.response.to.have.header(\"Transfer-Encoding\");\r",
-									"    pm.response.to.have.header(\"Date\");\r",
-									"    pm.response.to.have.header(\"Keep-Alive\");\r",
-									"    pm.response.to.have.header(\"Connection\");\r",
-									"});"
+									"});\r",
+									"\r",
+									"pm.test(\"Valid Schema\", () => {\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -252,7 +298,7 @@
 					"response": []
 				},
 				{
-					"name": "getCompany_1",
+					"name": "getUpdatedCompany",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -267,21 +313,33 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"if(response) {\r",
+									"    pm.test(\"Name Correct\", () =>  {\r",
+									"        pm.expect(response.name).to.eql(pm.environment.get('postCompanyName'));\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Body Correct\", () => {\r",
+									"        pm.expect(JSON.stringify(response.address)).to.eql(pm.environment.get('postCompanyAddress'));\r",
+									"    });    \r",
+									"}\r",
+									"\r",
+									"// console.log(pm.environment.get('postCompanyName'));\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
 									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Headers OK\", function () {\r",
+									"pm.test(\"Headers OK\", () => {\r",
 									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"    pm.response.to.have.header(\"Transfer-Encoding\");\r",
-									"    pm.response.to.have.header(\"Date\");\r",
-									"    pm.response.to.have.header(\"Keep-Alive\");\r",
-									"    pm.response.to.have.header(\"Connection\");\r",
-									"});"
+									"});\r",
+									"\r",
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -316,18 +374,16 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 204\", function () {\r",
+									"pm.test(\"Status code is 204\", () => {\r",
 									"    pm.response.to.have.status(204);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
 									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Headers OK\", function () {\r",
+									"pm.test(\"Headers OK\", () => {\r",
 									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"    pm.response.to.have.header(\"Date\");\r",
-									"    pm.response.to.have.header(\"Connection\");\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -357,7 +413,7 @@
 					"response": []
 				},
 				{
-					"name": "getCompanies_Final",
+					"name": "getCompanies",
 					"event": [
 						{
 							"listen": "test",
@@ -365,19 +421,28 @@
 								"exec": [
 									"const response = pm.response.json();\r",
 									"\r",
-									"pm.test(\"Status code is 200\", function () {\r",
+									"if(response) {\r",
+									"    pm.test(\"Company succesfully deleted\", () => {\r",
+									"        pm.test(\"Name Correct\", () =>  {\r",
+									"        pm.expect(response.name).to.not.be.eql(pm.environment.get('postCompanyName'));\r",
+									"    });\r",
+									"\r",
+									"        pm.test(\"Body Correct\", () => {\r",
+									"        pm.expect(JSON.stringify(response.address)).to.not.be.eql(pm.environment.get('postCompanyAddress'));\r",
+									"        });  \r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"pm.test(\"200 OK\", () => {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
 									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Headers OK\", function () {\r",
+									"pm.test(\"Headers OK\", () => {\r",
 									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"    pm.response.to.have.header(\"Transfer-Encoding\");\r",
-									"    pm.response.to.have.header(\"Date\");\r",
-									"    pm.response.to.have.header(\"Connection\");\r",
 									"});\r",
 									""
 								],
@@ -435,22 +500,24 @@
 									"}\r",
 									"\r",
 									"if(response) {\r",
-									"    pm.globals.set(\"employeeID\", response.id);\r",
+									"    pm.environment.set(\"employeeID\", response.id);\r",
+									"    pm.environment.set(\"postEmployeeFirstName\", response.firstName);\r",
+									"    pm.environment.set(\"postEmployeeLastName\", JSON.stringify(response.lastName));\r",
 									"}\r",
 									"\r",
-									"pm.test(\"Status code is 201\", function () {\r",
+									"pm.test(\"Status code is 201\", () => {\r",
 									"    pm.response.to.have.status(201);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Content-Type is present\", function () {\r",
+									"pm.test(\"Content-Type is present\", () => {\r",
 									"    pm.response.to.have.header(\"Content-Type\");\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Valid Schema\", () => {\r",
+									"pm.test(\"Valid POST Method\", () => {\r",
 									"    pm.response.to.have.jsonSchema(schema);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
 									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 									"});"
 								],
@@ -463,7 +530,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"firstName\": \"Aurel\",\r\n    \"lastName\": \"Ionel\",\r\n    \"companyId\": 13\r\n}",
+							"raw": "{\r\n    \"firstName\": \"Aurel\",\r\n    \"lastName\": \"Ionel\",\r\n    \"companyId\": {{putEmployeeMethodCompanyid}}\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -480,10 +547,69 @@
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "201 Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"firstName\": \"Aurel\",\r\n    \"lastName\": \"Ionel\",\r\n    \"companyId\": {{id}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/employee",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"employee"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						},
+						{
+							"name": "400 Bad Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"firstName\": 1,\r\n    \"lastName\": \"Ionel\",\r\n    \"companyId\": \"asdf\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/employee",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"employee"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						}
+					]
 				},
 				{
-					"name": "getAllEmployees",
+					"name": "getCreatedEmployee",
 					"event": [
 						{
 							"listen": "test",
@@ -491,20 +617,183 @@
 								"exec": [
 									"const response = pm.response.json();\r",
 									"\r",
-									"pm.test(\"Status code is 200\", function () {\r",
+									"// console.log(response.lastName);\r",
+									"// console.log(response.firstName);\r",
+									"\r",
+									"if(response) {\r",
+									"    pm.test(\"Body Created Correctly\", () => {\r",
+									"        pm.test(\"Name Correct\", () =>  {\r",
+									"        pm.expect(response.firstName).to.eql(pm.environment.get('postEmployeeFirstName'));\r",
+									"        pm.expect(JSON.stringify(response.lastName)).to.eql(pm.environment.get('postEmployeeLastName'));\r",
+									"    });\r",
+									"\r",
+									"    pm.test(\"Employee does exist in Company\", () => {\r",
+									"        pm.expect(JSON.stringify(response.companyId)).to.eql(pm.environment.get('putEmployeeMethodCompanyid'));\r",
+									"    });\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
 									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Headers OK\", function () {\r",
+									"pm.test(\"Headers OK\", () => {\r",
 									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"    pm.response.to.have.header(\"Transfer-Encoding\");\r",
-									"    pm.response.to.have.header(\"Date\");\r",
-									"    pm.response.to.have.header(\"Keep-Alive\");\r",
-									"    pm.response.to.have.header(\"Connection\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/employee/:employeeID",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"employee",
+								":employeeID"
+							],
+							"query": [
+								{
+									"key": "perPage",
+									"value": "5",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "employeeID",
+									"value": "{{employeeID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateEmployee",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();\r",
+									"\r",
+									"var schema = {\r",
+									"    \"items\": {\r",
+									"        \"type\": \"object\",\r",
+									"        \"properties\": {\r",
+									"            \"id\": {\"type\": \"number\"},\r",
+									"            \"firstName\": {\"type\": \"string\"},\r",
+									"            \"lastName\": {\"type\": \"string\"},\r",
+									"            \"companyId\": {\"type\": \"number\"}\r",
+									"        },\r",
+									"        \"required\": [\"id\", \"firstName\", \"lastName\", \"companyId\"]\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"if(response) {\r",
+									"    pm.environment.set(\"putEmployeeModified\", JSON.stringify(response));\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type is present\", () => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Valid PUT Method\", () => {\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Headers OK\", () => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Jirca\",\r\n    \"companyId\": {{putEmployeeMethodCompanyid}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/employee/:employeeID",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"employee",
+								":employeeID"
+							],
+							"variable": [
+								{
+									"key": "employeeID",
+									"value": "{{employeeID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getUpdatedEmployee",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();\r",
+									"\r",
+									"console.log(JSON.stringify(response));\r",
+									"\r",
+									"\r",
+									"if(response) {\r",
+									"    pm.test(\"Body Created Correctly\", () => {\r",
+									"        pm.expect(JSON.stringify(response)).to.include(pm.environment.get('putEmployeeModified'));\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Headers OK\", () => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
 									"});\r",
 									""
 								],
@@ -540,64 +829,6 @@
 					"response": []
 				},
 				{
-					"name": "updateEmployee",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Headers OK\", function () {\r",
-									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"    pm.response.to.have.header(\"Transfer-Encoding\");\r",
-									"    pm.response.to.have.header(\"Date\");\r",
-									"    pm.response.to.have.header(\"Keep-Alive\");\r",
-									"    pm.response.to.have.header(\"Connection\");\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Jirca\",\r\n    \"companyId\": 13\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/employee/:employeeID",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"employee",
-								":employeeID"
-							],
-							"variable": [
-								{
-									"key": "employeeID",
-									"value": "{{employeeID}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "deleteEmployee",
 					"event": [
 						{
@@ -614,8 +845,6 @@
 									"\r",
 									"pm.test(\"Headers OK\", function () {\r",
 									"    pm.response.to.have.header(\"Content-Type\");\r",
-									"    pm.response.to.have.header(\"Date\");\r",
-									"    pm.response.to.have.header(\"Connection\");\r",
 									"});"
 								],
 								"type": "text/javascript"
